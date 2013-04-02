@@ -198,14 +198,10 @@ struct IntArray* merge_sort(char *filename){
 int main(int argc, char *argv[])
 {
 
-    if (argc != 2) die("USAGE: merge_sort <file> ");
-    struct IntArray *output = malloc(sizeof(struct IntArray));
+    if (argc != 2) die("USAGE: count_inversion <file> ");
     char *filename = argv[1];
-    output = merge_sort(filename);
-    int i = 0;
-    for(i=0; i< output->length; i++){
-        printf("%d ", output->array[i]);
-    }
-
+    int n_inversions = 0;
+    n_inversions = count_inversions(filename);
+    printf("%d", n_inversions);
     return 0;
 }
