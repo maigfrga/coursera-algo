@@ -177,6 +177,168 @@ struct Matrix* strassen(int A, int B, int C, int D, int E, int F, int G, int H){
     return result;
 }
 
+struct MatrixArray* split_matrix(struct Matrix matrix){
+    int split_row_count = matrix.row_count / 2;
+
+    struct Matrix *quadrant1 = malloc(sizeof(struct Matrix));
+    quadrant1->row_count = split_row_count;
+    struct Row *array_rows1 = malloc(sizeof(struct Row)*split_row_count);
+
+    struct Matrix *quadrant2 = malloc(sizeof(struct Matrix));
+    quadrant2->row_count = split_row_count;
+    struct Row *array_rows2 = malloc(sizeof(struct Row)*split_row_count);
+
+    struct Matrix *quadrant3 = malloc(sizeof(struct Matrix));
+    quadrant3->row_count = split_row_count;
+    struct Row *array_rows3 = malloc(sizeof(struct Row)*split_row_count);
+
+    struct Matrix *quadrant4 = malloc(sizeof(struct Matrix));
+    quadrant4->row_count = split_row_count;
+    struct Row *array_rows4 = malloc(sizeof(struct Row)*split_row_count);
+
+    struct Row *row1;
+    struct Row *row2;
+    int i=0, j=0, k=0;
+    for(i=0; i<matrix.row_count; i++){
+        //split row
+        struct IntArraySplitted *arr_split = split_array(matrix.rows[i].elements);
+        row1 = malloc(sizeof(struct Row));
+        row1->elements = arr_split->intArray1;
+        row2 = malloc(sizeof(struct Row));
+        row2->elements =  arr_split->intArray2;
+
+        //build quadrants
+        if(i < split_row_count){
+            array_rows1[j] = *row1;
+            array_rows2[j] = *row2;
+            j++;
+        }else{
+            array_rows3[k] = *row1;
+            array_rows4[k] = *row2;
+            k++;
+        }
+
+    }
+
+    quadrant1->rows = array_rows1;
+    quadrant2->rows = array_rows2;
+    quadrant3->rows = array_rows3;
+    quadrant4->rows = array_rows4;
+
+    struct MatrixArray *result = malloc(sizeof(struct MatrixArray));
+    struct Matrix *matrix_array = malloc(sizeof(struct Matrix)*4);
+    matrix_array[0] = *quadrant1;
+    matrix_array[1] = *quadrant2;
+    matrix_array[2] = *quadrant3;
+    matrix_array[3] = *quadrant4;
+    result->length = 4;
+    result->array = matrix_array;
+    return result;
+}
+
+
+
+struct Matrix* sum(struct Matrix matrix1, struct Matrix matrix2){
+
+    struct Matrix *result = malloc(sizeof(struct Matrix));
+    struct Row *row;
+    struct Row *array_rows = malloc(sizeof(struct Row)*matrix1.row_count);
+    int i,j;
+    int *elements_array;
+    struct IntArray *intArray_row;
+    for(i=0; i<matrix1.row_count; i++){
+        intArray_row = malloc(sizeof(struct IntArray));
+        elements_array = malloc(sizeof(int)*matrix1.rows[i].elements->length);
+        for(j=0; j<matrix1.rows[i].elements->length; j++){
+            elements_array[j] = matrix1.rows[i].elements->array[j] +
+                                matrix2.rows[i].elements->array[j];
+        }
+        intArray_row->length = j;
+        intArray_row->array = elements_array;
+        row = malloc(sizeof(struct Row));
+        row->elements = intArray_row;
+        array_rows[i] = *row;
+
+    }
+    result->rows = array_rows;
+    result->row_count = matrix1.row_count;
+    return result;
+}
+
+
+struct Matrix* merge_cuadrants(struct Matrix q1, struct Matrix q2){
+    struct Matrix *result = malloc(sizeof(struct Matrix));
+    struct Row *row;
+    struct IntArray *intArray_row;
+    int total_columns = q1.rows[0].elements->length + q2.rows[0].elements->length;
+    struct Row *array_rows = malloc(sizeof(struct Row)*(q1.row_count));
+    int *elements_array;
+    int i, j, k, h, y, z  ;
+
+    for(i=0; i<q1.row_count; i++){
+        row = malloc(sizeof(struct Row));
+        intArray_row = malloc(sizeof(struct IntArray));
+        elements_array = malloc(sizeof(int)*total_columns);
+
+        //k:row index h:column index
+        h = 0;
+        for(j=0; j<total_columns; j++){
+            if(j<q1.row_count){
+                elements_array[j] = q1.rows[i].elements->array[h];
+                h++;
+            }else{
+                if(j == q1.row_count){
+                    h = 0;
+                }
+                elements_array[j] = q2.rows[i].elements->array[h];
+                h++;
+            }
+
+        }
+        intArray_row->length = total_columns;
+        intArray_row->array = elements_array;
+        row->elements = intArray_row;
+        array_rows[i] = *row;
+    }
+
+    result->rows = array_rows;
+    result->row_count = q1.row_count;
+    return result;
+
+}
+
+struct Matrix* merge(struct Matrix q1, struct Matrix q2,
+                     struct Matrix q3, struct Matrix q4){
+
+    struct Matrix *top_merged = malloc(sizeof(struct Matrix));
+    struct Matrix *bottom_merged = malloc(sizeof(struct Matrix));
+    struct Matrix *result = malloc(sizeof(struct Matrix));
+    struct Row *row;
+    struct IntArray *intArray_row;
+    int total_rows = q1.row_count + q3.row_count;
+    struct Row *array_rows = malloc(sizeof(struct Row)*(total_rows));
+
+    top_merged = merge_cuadrants(q1, q2);
+    bottom_merged = merge_cuadrants(q3, q4);
+
+    int i,j=0,k=0;
+    for (i=0; i<total_rows; i++){
+        if(i<top_merged->row_count){
+            array_rows[i] = top_merged->rows[j];
+            j++;
+        }else{
+            array_rows[i] = bottom_merged->rows[k];
+            k++;
+        }
+    }
+
+    result->rows = array_rows;
+    result->row_count = total_rows;
+    return result;
+
+}
+
+
 struct Matrix* product(struct Matrix matrix1, struct Matrix matrix2){
     struct Matrix *result = malloc(sizeof(struct Matrix));
 
@@ -190,6 +352,53 @@ struct Matrix* product(struct Matrix matrix1, struct Matrix matrix2){
                              matrix2.rows[1].elements->array[0],
                              matrix2.rows[1].elements->array[1]
                              );
+    }else{
+        //Split matrices in cuadrants
+        struct MatrixArray *split_matrices1 = split_matrix(matrix1);
+        struct MatrixArray *split_matrices2 = split_matrix(matrix2);
+
+        struct Matrix *A_E = malloc(sizeof(struct Matrix));
+        struct Matrix *B_G = malloc(sizeof(struct Matrix));
+        struct Matrix *A_F = malloc(sizeof(struct Matrix));
+        struct Matrix *B_H = malloc(sizeof(struct Matrix));
+        struct Matrix *C_E = malloc(sizeof(struct Matrix));
+        struct Matrix *D_G = malloc(sizeof(struct Matrix));
+        struct Matrix *C_F = malloc(sizeof(struct Matrix));
+        struct Matrix *D_H = malloc(sizeof(struct Matrix));
+
+        A_E = product(split_matrices1->array[0], split_matrices2->array[0]);
+        B_G = product(split_matrices1->array[1], split_matrices2->array[2]);
+        A_F = product(split_matrices1->array[0], split_matrices2->array[1]);
+        B_H = product(split_matrices1->array[1], split_matrices2->array[3]);
+        C_E = product(split_matrices1->array[2], split_matrices2->array[0]);
+        D_G = product(split_matrices1->array[3], split_matrices2->array[2]);
+        C_F = product(split_matrices1->array[2], split_matrices2->array[1]);
+        D_H = product(split_matrices1->array[3], split_matrices2->array[3]);
+
+        struct Matrix *quadrant1 = malloc(sizeof(struct Matrix));
+        struct Matrix *quadrant2 = malloc(sizeof(struct Matrix));
+        struct Matrix *quadrant3 = malloc(sizeof(struct Matrix));
+        struct Matrix *quadrant4 = malloc(sizeof(struct Matrix));
+
+        quadrant1 = sum(*A_E, *B_G);
+        quadrant2 = sum(*A_F, *B_H);
+        quadrant3 = sum(*C_E, *D_G);
+        quadrant4 = sum(*C_F, *D_H);
+
+        result = merge(*quadrant1, *quadrant2, *quadrant3, *quadrant4);
+/*        printf("\n quadrant1 \n");
+        print_matrix(*quadrant1);
+
+        printf("\n quadrant2 \n");
+        print_matrix(*quadrant2);
+
+        printf("\n quadrant3 \n");
+        print_matrix(*quadrant3);
+
+        printf("\n quadrant4 \n");
+        print_matrix(*quadrant4);*/
+
+
     }
 
 
