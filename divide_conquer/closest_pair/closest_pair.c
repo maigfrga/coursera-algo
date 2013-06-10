@@ -26,11 +26,16 @@ struct PointArray *Connection_process(struct Connection *conn){
     char *file_line_token = NULL;
     char *file_line_space = NULL;
     char *file_line_space_token = NULL;
+    char *point_token = NULL;
+    char *coordinate_token = NULL;
     int nread = 0;
-    int *array_numbers;
-    int array_index=0;
+    int int_point = 0;
+    char *point_control = NULL;
     struct PointArray *point_array = malloc(sizeof(struct PointArray));
 
+    int array_index = 0;
+    struct Point *point = malloc(sizeof(struct PointArray));
+    struct Point *arr_point = NULL;
 
     if(!buffer) die("Memory error !! \n");
     //read every line of the file
@@ -41,18 +46,46 @@ struct PointArray *Connection_process(struct Connection *conn){
         if(file_line != NULL){
            //split the buffer line by line
             while ((file_line_token = strsep(&file_line, "\n")) != NULL){
+                if (strcmp(file_line_token, "" )==0){
+                    break;
+                }
                 //split every line by blank spaces
                 file_line_space = strdup(file_line_token);
                 while ((file_line_space_token = strsep(&file_line_space, " ")) != NULL){
                     if (strcmp(file_line_space_token, "" )==0){
                         break;
                     }
-                    printf("\n -  %s - \n", file_line_space_token);
+
+                    arr_point = (struct Point*) realloc(arr_point, sizeof(struct Point) * (array_index+1));
+                    point = malloc(sizeof(struct Point));
+                    //split point
+                    if(file_line_space_token != NULL){
+                        point_token = strdup(file_line_space_token);
+                        while ((point_token = strsep(&file_line_space_token, ",")) != NULL){
+                            if (strcmp(point_token, "" )==0 ){
+                                break;
+                            }
+                            if(NULL == point_control){
+                                point->x = atoi(point_token);
+                                point_control = "A";
+                            }else{
+                                point->y = atoi(point_token);
+                                point_control = NULL;
+                            }
+                        }
+                            arr_point[array_index] = *point;
+                            array_index++;
+
+                    }
                 }
                 free(file_line_token);
             }
         }
+        nread = fread(buffer, 1, CHUNK_SIZE, conn->file);
+        free(file_line);
     }
+    point_array->array = arr_point;
+    point_array->length = array_index;
     return point_array;
 }
 
@@ -66,7 +99,6 @@ struct PointArray* closest_pair(char *filename){
     struct Connection *conn = File_open(filename, "rt");
     struct PointArray *point_array = Connection_process(conn);
     Connection_close(conn);
-
     return point_array;
 }
 
