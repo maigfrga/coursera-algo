@@ -8,9 +8,9 @@ OBJS=$(SRC:.c=.o)
 
 CFLAGS=-Wall -g
 
-merge_sort:
+count_inversion:
 	@echo application Makefile - linking
-	@$(CC) $(SRC) -o  $(OUTPUT) -I$(HEADER_LIB) $(LIBDIR)$(LIBS)
+	@$(CC)   $(SRC)  -o  $(OUTPUT)  -I$(HEADER_LIB) $(LIBDIR)$(LIBS) 
 
 clean:
 	rm -f $(OUTPUT)

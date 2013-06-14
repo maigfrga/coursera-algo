@@ -8,9 +8,9 @@ OBJS=$(SRC:.c=.o)
 
 CFLAGS=-Wall -g
 
-merge_sort:
+closest_pair:
 	@echo application Makefile - linking
-	@$(CC) $(SRC) -o closest_pair -I$(HEADER_LIB) $(LIBDIR)$(LIBS)
+	@$(CC) $(SRC) -lm -o closest_pair -I$(HEADER_LIB) $(LIBDIR)$(LIBS)
 
 clean:
 	rm -f closest_pair
