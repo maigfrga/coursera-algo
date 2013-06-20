@@ -17,6 +17,17 @@ struct PointArray{
 
 };
 
+struct PointArraySplitted{
+    struct PointArray *array1;
+    struct PointArray *array2;
+};
+
+struct OrderedPointArray{
+    struct PointArray *original_array;
+    struct PointArray *x_ordered;
+    struct PointArray *y_ordered;
+};
+
 /*process the text file and returns a PointArray struct
  * ready to apply closest_pair
  * Split string by tokens: http://stackoverflow.com/questions/2523467/how-to-split-a-string-to-2-strings-in-c
@@ -96,8 +107,12 @@ float euclidian_distance(struct Point p1, struct Point p2){
     return result;
 }
 
-struct PointArray* split_point_array(struct PointArray* input){
-    struct PointArray *split_array = malloc(sizeof(struct PointArray)*2);
+
+
+
+//Split a Point array in two
+struct PointArraySplitted *split_point_array(struct PointArray* input){
+    struct PointArraySplitted *split_array = malloc(sizeof(struct PointArraySplitted));
     struct PointArray *output1 = malloc(sizeof(struct PointArray));
     struct PointArray *output2 = malloc(sizeof(struct PointArray));
     struct Point *array1;
@@ -124,8 +139,8 @@ struct PointArray* split_point_array(struct PointArray* input){
     }
     output2->array = array2;
 
-    split_array[0] = *output1;
-    split_array[1] = *output2;
+    split_array->array1 = output1;
+    split_array->array2 = output2;
     return split_array;
 }
 
@@ -133,12 +148,50 @@ void print_point(struct Point point){
     printf("\n x: %lf y: %lf \n", point.x, point.y);
 }
 
+
+struct OrderedPointArray* merge_point_array(struct OrderedPointArray *input1, struct OrderedPointArray *input2){
+    struct OrderedPointArray *array_ordered;
+    return array_ordered;
+}
+
+struct OrderedPointArray* split_sort(struct OrderedPointArray *input){
+    if(input->original_array->length == 1){
+        print_point(input->original_array->array[0]);
+        return input;
+    }else{
+        struct PointArraySplitted *split_array = split_point_array(input->original_array);
+
+        struct OrderedPointArray *ordered1 = malloc(sizeof(struct OrderedPointArray));
+        ordered1->original_array = split_array->array1;
+        struct OrderedPointArray *arr1 = split_sort(ordered1);
+
+        struct OrderedPointArray *ordered2 = malloc(sizeof(struct OrderedPointArray));
+        ordered2->original_array = split_array->array2;
+        struct OrderedPointArray *arr2 = split_sort(ordered2);
+
+
+        struct OrderedPointArray *array_ordered = merge_point_array(arr1, arr2);
+        return array_ordered;
+    }
+
+}
+
 struct PointArray* closest_pair(char *filename){
     struct Connection *conn = File_open(filename, "rt");
     struct PointArray *point_array = Connection_process(conn);
     Connection_close(conn);
-    struct PointArray *point_array_splitted = split_point_array(point_array);
-    return point_array_splitted;
+    struct PointArraySplitted *split_array = split_point_array(point_array);
+
+    struct OrderedPointArray *ordered1 = malloc(sizeof(struct OrderedPointArray));
+    ordered1->original_array = split_array->array1;
+
+    struct OrderedPointArray *ordered2 = malloc(sizeof(struct OrderedPointArray));
+    ordered2->original_array = split_array->array2;
+
+    struct PointArray *result;
+    struct OrderedPointArray *result1 = split_sort(ordered1);
+    struct OrderedPointArray *result2 = split_sort(ordered2);
+    return result;
 }
 
 
