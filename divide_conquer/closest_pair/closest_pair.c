@@ -23,7 +23,6 @@ struct PointArraySplitted{
 };
 
 struct OrderedPointArray{
-    struct PointArray *original_array;
     struct PointArray *x_ordered;
     struct PointArray *y_ordered;
 };
@@ -149,24 +148,68 @@ void print_point(struct Point point){
 }
 
 
-struct OrderedPointArray* merge_point_array(struct OrderedPointArray *input1, struct OrderedPointArray *input2){
-    struct OrderedPointArray *array_ordered;
+struct OrderedPointArray* merge_point_array(struct OrderedPointArray *left, struct OrderedPointArray *right){
+    int length = left->x_ordered->length + right->x_ordered->length;
+    int i=0, j=0, k=0, inversion_count = 0;
+    //ordered by x
+    struct PointArray *x_ordered = malloc(sizeof(struct PointArray)*length);
+    x_ordered->length = length;
+    struct Point *x_ordered_array = malloc(sizeof(struct Point)*length);
+    for(i=0; i<length; i++){
+        if(left->x_ordered->array[j].x > right->x_ordered->array[k].x && k < right->x_ordered->length){
+            x_ordered_array[i] = right->x_ordered->array[k];
+            k++;
+        }else if(j< left->x_ordered->length){
+            x_ordered_array[i] = left->x_ordered->array[j];
+            j++;
+        }else if(k < right->x_ordered->length){
+            x_ordered_array[i] = right->x_ordered->array[k];
+            k++;
+        }
+
+    }
+    x_ordered->array = x_ordered_array;
+
+    //ordered by y
+    i=0, j=0, k=0;
+    struct PointArray *y_ordered = malloc(sizeof(struct PointArray)*length);
+    y_ordered->length = length;
+    struct Point *y_ordered_array = malloc(sizeof(struct Point)*length);
+    for(i=0; i<length; i++){
+         if(left->y_ordered->array[j].y > right->y_ordered->array[k].y && k < right->y_ordered->length){
+            y_ordered_array[i] = right->y_ordered->array[k];
+            k++;
+        }else if(j< left->y_ordered->length){
+            y_ordered_array[i] = left->y_ordered->array[j];
+            j++;
+        }else if(k < right->y_ordered->length){
+            y_ordered_array[i] = right->y_ordered->array[k];
+            k++;
+        }
+    }
+    y_ordered->array = y_ordered_array;
+
+    struct OrderedPointArray *array_ordered = malloc(sizeof(struct OrderedPointArray));
+    array_ordered->x_ordered = x_ordered;
+    array_ordered->y_ordered = y_ordered;
+
     return array_ordered;
 }
 
 struct OrderedPointArray* split_sort(struct OrderedPointArray *input){
-    if(input->original_array->length == 1){
-        print_point(input->original_array->array[0]);
+    if(input->x_ordered->length == 1){
         return input;
     }else{
-        struct PointArraySplitted *split_array = split_point_array(input->original_array);
+        struct PointArraySplitted *split_array = split_point_array(input->x_ordered);
 
         struct OrderedPointArray *ordered1 = malloc(sizeof(struct OrderedPointArray));
-        ordered1->original_array = split_array->array1;
+        ordered1->x_ordered = split_array->array1;
+        ordered1->y_ordered = split_array->array1;
         struct OrderedPointArray *arr1 = split_sort(ordered1);
-
+        int p=0;
         struct OrderedPointArray *ordered2 = malloc(sizeof(struct OrderedPointArray));
-        ordered2->original_array = split_array->array2;
+        ordered2->x_ordered = split_array->array2;
+        ordered2->y_ordered = split_array->array2;
         struct OrderedPointArray *arr2 = split_sort(ordered2);
 
 
@@ -183,14 +226,29 @@ struct PointArray* closest_pair(char *filename){
     struct PointArraySplitted *split_array = split_point_array(point_array);
 
     struct OrderedPointArray *ordered1 = malloc(sizeof(struct OrderedPointArray));
-    ordered1->original_array = split_array->array1;
+    ordered1->x_ordered = split_array->array1;
+    ordered1->y_ordered = split_array->array1;
 
     struct OrderedPointArray *ordered2 = malloc(sizeof(struct OrderedPointArray));
-    ordered2->original_array = split_array->array2;
+    ordered2->x_ordered = split_array->array2;
+    ordered2->y_ordered = split_array->array2;
 
     struct PointArray *result;
     struct OrderedPointArray *result1 = split_sort(ordered1);
     struct OrderedPointArray *result2 = split_sort(ordered2);
+
+    struct OrderedPointArray *result_merged = merge_point_array(result1, result2);
+
+    int i =0;
+    for (i=0; i<result_merged->x_ordered->length; i++){
+        print_point(result_merged->x_ordered->array[i]);
+    }
+
+    printf("\n y : --------------------------\n");
+    for (i=0; i<result_merged->y_ordered->length; i++){
+        print_point(result_merged->y_ordered->array[i]);
+    }
+
     return result;
 }
 
