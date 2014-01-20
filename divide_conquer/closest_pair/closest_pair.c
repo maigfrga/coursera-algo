@@ -219,6 +219,29 @@ struct OrderedPointArray* split_sort(struct OrderedPointArray *input){
 
 }
 
+struct PointArray* divide_conquer_closest_pair(struct PointArray *x_ordered, struct PointArray *y_ordered){
+    struct PointArray* pair = NULL;
+    return pair;
+}
+
+struct PointArray* divide_conquer(struct PointArray *x_ordered, struct PointArray *y_ordered){
+    struct PointArray *result;
+    struct PointArraySplitted *x_ordered_split_array = split_point_array(x_ordered);
+    struct PointArraySplitted *y_ordered_split_array = split_point_array(y_ordered);
+    /*int i =0;
+    for (i=0; i<x_ordered->length; i++){
+        print_point(x_ordered->array[i]);
+    }
+
+    printf("\n y : --------------------------\n");
+    for (i=0; i<y_ordered->length; i++){
+        print_point(y_ordered->array[i]);
+    }*/
+
+    return result;
+}
+
+
 struct PointArray* closest_pair(char *filename){
     struct Connection *conn = File_open(filename, "rt");
     struct PointArray *point_array = Connection_process(conn);
@@ -238,16 +261,7 @@ struct PointArray* closest_pair(char *filename){
     struct OrderedPointArray *result2 = split_sort(ordered2);
 
     struct OrderedPointArray *result_merged = merge_point_array(result1, result2);
-
-    int i =0;
-    for (i=0; i<result_merged->x_ordered->length; i++){
-        print_point(result_merged->x_ordered->array[i]);
-    }
-
-    printf("\n y : --------------------------\n");
-    for (i=0; i<result_merged->y_ordered->length; i++){
-        print_point(result_merged->y_ordered->array[i]);
-    }
+    divide_conquer(result_merged->x_ordered, result_merged->y_ordered);
 
     return result;
 }
