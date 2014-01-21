@@ -107,6 +107,26 @@ struct Node *build_list(int n){
     return linked_list;
 }
 
+
+
+/**Reverse list cost O(n)
+ * */
+struct Node *head;
+struct Node *reverse_list(struct Node *linked_list){
+
+    if (linked_list->next_node == NULL){
+        head = linked_list;
+        return;
+    }
+
+    reverse_list(linked_list->next_node);
+    struct Node *temp = linked_list->next_node;
+    temp->next_node = linked_list;
+    linked_list->next_node = NULL;
+    return head;
+}
+
+
 /**
  * Linked List Implementation Example
 **/
@@ -137,5 +157,8 @@ int main(int argc, char *argv[])
     linked_list = insert_node(linked_list, list_len, random_int);
     traverse_list(linked_list);
 
+    printf("Reversing the list: \n");
+    linked_list = reverse_list(linked_list);
+    traverse_list(linked_list);
     return 0;
 }
