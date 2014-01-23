@@ -128,6 +128,49 @@ struct Node *reverse_list(struct Node *linked_list){
 
 
 /**
+ * IF position is 0 the operation cost is O(1), otherwise O(n)
+ * */
+struct Node *remove_node(struct Node *linked_list, int position){
+      struct Node *new_list;
+
+    if(!linked_list->next_node){
+        return linked_list;
+    }
+
+
+    if(position == 0){
+         new_list = linked_list->next_node;
+         free(linked_list);
+    }
+    else{
+        int counter = 0;
+  
+        struct Node *temp_node = linked_list;
+        new_list = linked_list;
+        while(counter < position - 1  && temp_node->next_node->next_node != NULL){
+            counter += 1;
+            temp_node = temp_node->next_node;
+        }
+
+
+        //if the item to be removed is not the last in the list
+        if(temp_node->next_node->next_node != NULL){
+            linked_list = temp_node->next_node->next_node;
+            temp_node->next_node = linked_list;
+       }else{
+           temp_node->next_node = NULL;
+       }
+
+
+
+    }
+
+    return new_list;
+}
+
+
+
+/**
  * Linked List Implementation Example
 **/
 int main(int argc, char *argv[])
@@ -160,5 +203,18 @@ int main(int argc, char *argv[])
     printf("Reversing the list: \n");
     linked_list = reverse_list(linked_list);
     traverse_list(linked_list);
+
+    printf("Removing first item on  the list: \n");
+    linked_list = remove_node(linked_list, 0);
+    traverse_list(linked_list);
+
+    printf("Removing third item on  the list: \n");
+    linked_list = remove_node(linked_list, 2);
+    traverse_list(linked_list);
+
+    printf("Removing last item on  the list: \n");
+    linked_list = remove_node(linked_list, 20);
+    traverse_list(linked_list);
+
     return 0;
 }
